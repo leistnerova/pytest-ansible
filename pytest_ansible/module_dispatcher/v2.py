@@ -15,7 +15,7 @@ from pytest_ansible.errors import AnsibleConnectionFailure
 
 has_ansible_v2 = parse_version(ansible.__version__) >= parse_version('2.0.0')
 
-if not has_ansible_v2 and not has_ansible_v24:
+if not has_ansible_v2:
     raise ImportError("Only supported with ansible-2.* and newer")
 
 log = get_logger(__name__)
