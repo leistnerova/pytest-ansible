@@ -1,6 +1,7 @@
 """PyTest Ansible Plugin."""
 
 import pytest
+import sys
 import ansible
 import ansible.constants
 import ansible.utils
@@ -162,10 +163,15 @@ class PyTestAnsiblePlugin:
         log.debug("items: %s" % items)
 
         uses_ansible_fixtures = False
+        parent_module = '.'.join(__name__.split('.')[:-1])
+        def_fixtures = dir(sys.modules['{}.fixtures'.format(parent_module)])
         for item in items:
             if not hasattr(item, 'fixturenames'):
                 continue
-            if any([fixture.startswith('ansible_') for fixture in item.fixturenames]):
+            if len(
+                set(filter(lambda fix: fix.startswith('ansible_'), def_fixtures)) &
+                set(item.fixturenames)
+            ) > 0:
                 # TODO - ignore if they are using a marker
                 # marker = item.get_marker('ansible')
                 # if marker and 'inventory' in marker.kwargs:
