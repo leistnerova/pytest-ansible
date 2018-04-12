@@ -61,6 +61,10 @@ def pytest_addoption(parser):
                     dest='ansible_module_path',
                     default=ansible.constants.DEFAULT_MODULE_PATH,
                     help='specify path(s) to module library (default: %(default)s)')
+    group.addoption('--ssh-extra-args', '--ansible-ssh-extra-args',
+                    action='store_true',
+                    dest='ansible_ssh_extra_args',
+                    help='extra arguments to add for ansible ssh connection')
 
     # become privilege escalation
     group.addoption('--become', '--ansible-become',
@@ -186,7 +190,7 @@ class PyTestAnsiblePlugin:
         """Load ansible configuration from command-line."""
         option_names = ['ansible_inventory', 'ansible_host_pattern', 'ansible_connection', 'ansible_user',
                         'ansible_module_path', 'ansible_become', 'ansible_become_method', 'ansible_become_user',
-                        'ansible_ask_become_pass', 'ansible_subset']
+                        'ansible_ask_become_pass', 'ansible_subset', 'ansible_ssh_extra_args']
 
         kwargs = dict()
 

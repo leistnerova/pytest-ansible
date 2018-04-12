@@ -97,6 +97,7 @@ class ModuleDispatcherV2(BaseModuleDispatcher):
         options.become_method = self.options.get('become_method')
         options.become_user = self.options.get('become_user')
         options.module_path = self.options.get('module_path')
+        options.ssh_extra_args = self.options.get('ssh_extra_args')
 
         # Initialize callback to capture module JSON responses
         cb = ResultAccumulator()
