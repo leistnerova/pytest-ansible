@@ -4,17 +4,17 @@ import ansible.constants
 import ansible.utils
 import ansible.errors
 
-from pkg_resources import parse_version
 from ansible.plugins.callback import CallbackBase
 from ansible.executor.task_queue_manager import TaskQueueManager
 from ansible.playbook.play import Play
+# from ansible.plugins.loader import module_loader
 from ansible.cli import CLI
 from pytest_ansible.logger import get_logger
 from pytest_ansible.module_dispatcher import BaseModuleDispatcher
 from pytest_ansible.results import AdHocResult
 from pytest_ansible.errors import AnsibleConnectionFailure
+from pytest_ansible.has_version import has_ansible_v2
 
-has_ansible_v2 = parse_version(ansible.__version__) >= parse_version('2.0.0')
 
 if not has_ansible_v2:
     raise ImportError("Only supported with ansible-2.* and newer")
@@ -53,6 +53,7 @@ class ModuleDispatcherV2(BaseModuleDispatcher):
 
     def has_module(self, name):
         return ansible.plugins.module_loader.has_plugin(name)
+        # return module_loader.has_plugin(name)
 
     def _run(self, *module_args, **complex_args):
         """Execute an ansible adhoc command returning the result in a AdhocResult object."""

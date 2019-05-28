@@ -17,9 +17,7 @@ def test_len(adhoc_result):
 
 
 def test_keys(adhoc_result):
-    sorted_keys = adhoc_result.keys()
-    sorted_keys.sort()
-    assert sorted_keys == ALL_HOSTS
+    assert set(adhoc_result) == set(ALL_HOSTS)
 
 
 def test_items(adhoc_result):
@@ -34,7 +32,9 @@ def test_items(adhoc_result):
 
 def test_values(adhoc_result):
     values = adhoc_result.values()
-    assert isinstance(values, GeneratorType)
+    assert isinstance(values, list)
+    # assure that it is a copy
+    assert values is not adhoc_result.contacted.values()
     for count, val in enumerate(values, 1):
         assert isinstance(val, ModuleResult)
     assert count == len(ALL_HOSTS)

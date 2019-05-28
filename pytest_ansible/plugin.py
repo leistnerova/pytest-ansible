@@ -6,7 +6,11 @@ import ansible
 import ansible.constants
 import ansible.utils
 import ansible.errors
-import collections
+
+try:
+    from ansible.plugins import become_loader
+except ImportError:
+    become_loader = None
 
 from pytest_ansible.logger import get_logger
 from pytest_ansible.fixtures import (ansible_adhoc, ansible_module, ansible_facts, localhost)
@@ -16,6 +20,14 @@ log = get_logger(__name__)
 
 # Silence linters for imported fixtures
 (ansible_adhoc, ansible_module, ansible_facts, localhost)
+
+
+def become_methods():
+    """Return string list of become methods available to ansible."""
+    if become_loader:
+        return [method.name for method in become_loader.all()]
+    else:
+        return ansible.constants.BECOME_METHODS
 
 
 def pytest_addoption(parser):
@@ -77,7 +89,7 @@ def pytest_addoption(parser):
                     dest='ansible_become_method',
                     default=ansible.constants.DEFAULT_BECOME_METHOD,
                     help="privilege escalation method to use (default: %%(default)s), valid choices: [ %s ]" %
-                    (' | '.join(ansible.constants.BECOME_METHODS)))
+                    (' | '.join(become_methods())))
     group.addoption('--become-user', '--ansible-become-user',
                     action='store',
                     dest='ansible_become_user',
@@ -121,7 +133,7 @@ def pytest_generate_tests(metafunc):
         try:
             plugin = metafunc.config.pluginmanager.getplugin("ansible")
             hosts = plugin.initialize(config=plugin.config, pattern=metafunc.config.getoption('ansible_host_pattern'))
-        except ansible.errors.AnsibleError, e:
+        except ansible.errors.AnsibleError as e:
             raise pytest.UsageError(e)
         # Return the host name as a string
         # metafunc.parametrize("ansible_host", hosts.keys())
@@ -137,7 +149,7 @@ def pytest_generate_tests(metafunc):
         try:
             plugin = metafunc.config.pluginmanager.getplugin("ansible")
             hosts = plugin.initialize(config=plugin.config, pattern=metafunc.config.getoption('ansible_host_pattern'))
-        except ansible.errors.AnsibleError, e:
+        except ansible.errors.AnsibleError as e:
             raise pytest.UsageError(e)
         # FIXME: Eeew, this shouldn't be interfacing with `hosts.options`
         groups = hosts.options['inventory_manager'].list_groups()
@@ -212,22 +224,9 @@ class PyTestAnsiblePlugin:
         kwargs = dict()
 
         # Override options from @pytest.mark.ansible
-        if request.scope == 'function':
-            if hasattr(request.function, 'ansible'):
-                kwargs = request.function.ansible.kwargs
-        elif request.scope == 'class':
-            if hasattr(request.cls, 'pytestmark') and isinstance(request.cls.pytestmark, collections.Iterable):
-                for pytestmark in request.cls.pytestmark:
-                    if pytestmark.name == 'ansible':
-                        kwargs = pytestmark.kwargs
-                    else:
-                        continue
-
-        # Was this fixture called in conjunction with a parametrized fixture
-        if 'ansible_host' in request.fixturenames:
-            kwargs['host_pattern'] = request.getfuncargvalue('ansible_host')
-        elif 'ansible_group' in request.fixturenames:
-            kwargs['host_pattern'] = request.getfuncargvalue('ansible_group')
+        marker = request.node.get_closest_marker('ansible')
+        if marker:
+            kwargs = marker.kwargs
 
         log.debug("request: %s" % kwargs)
         return kwargs

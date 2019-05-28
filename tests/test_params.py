@@ -1,10 +1,14 @@
 import sys
 import pytest
 import ansible
-import mock
+from pkg_resources import parse_version
+from pytest_ansible.has_version import has_ansible_v28
+try:
+    import mock
+except ImportError:
+    from unittest import mock
 import re
 from _pytest.main import EXIT_OK, EXIT_TESTSFAILED, EXIT_USAGEERROR, EXIT_NOTESTSCOLLECTED, EXIT_INTERRUPTED
-from pkg_resources import parse_version
 
 if sys.version_info[0] == 2:
     import __builtin__ as builtins  # NOQA
@@ -115,7 +119,7 @@ def test_params_required_when_using_generator(testdir, option, fixture_name):
     assert result.ret == EXIT_INTERRUPTED
     result.stdout.fnmatch_lines([
         'collected 0 items / 1 errors',
-        'E   UsageError: Missing required parameter --ansible-host-pattern/--host-pattern',
+        'E  *UsageError: Missing required parameter --ansible-host-pattern/--host-pattern',
     ])
 
 
@@ -135,7 +139,7 @@ def test_param_requires_value(testdir, required_value_parameter):
     """Verifies failure when not providing a value to a parameter that requires a value"""
 
     result = testdir.runpytest(*[required_value_parameter])
-    assert result.ret == EXIT_INTERRUPTED
+    assert result.ret == EXIT_USAGEERROR
     result.stderr.fnmatch_lines([
         '*: error: argument *%s*: expected one argument' % required_value_parameter,
     ])
@@ -190,10 +194,8 @@ def test_params_required_with_bogus_inventory_v2(testdir, option, recwarn):
     src = """
         import pytest
         def test_func(ansible_module):
-            with pytest.warns(UserWarning) as record:
+            with pytest.warns(UserWarning, match="provided hosts list is empty, only localhost is available"):
                 ansible_module.ping()
-            assert len(record) == 1
-            assert record[0].message.args[0] == "provided hosts list is empty, only localhost is available"
     """
     testdir.makepyfile(src)
 
@@ -208,13 +210,19 @@ def test_params_required_with_bogus_inventory_v2(testdir, option, recwarn):
 
 
 @pytest.mark.requires_ansible_v24
+@pytest.mark.skipif(
+    has_ansible_v28,
+    reason="requires ansible < 2.8"
+)
 def test_params_required_with_bogus_inventory_v24(testdir, option, recwarn):
     src = """
         import pytest
         def test_func(ansible_module):
             with pytest.warns(UserWarning) as record:
                 ansible_module.ping()
-            assert len(record) == 1
+            # Ensure at least one warning in the queue
+            assert len(record) >= 1
+            # Ensure the latest warning is the ansible localhost warning
             assert record[0].message.args[0] == "provided hosts list is empty, only localhost is available"
 
     """

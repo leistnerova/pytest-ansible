@@ -1,10 +1,9 @@
 # pytest-ansible
 
-[![Build Status](https://img.shields.io/travis/jlaska/pytest-ansible.svg)](https://travis-ci.org/jlaska/pytest-ansible)
-[![Coverage Status](https://img.shields.io/coveralls/jlaska/pytest-ansible.svg)](https://coveralls.io/r/jlaska/pytest-ansible)
-[![Requirements Status](https://requires.io/github/jlaska/pytest-ansible/requirements.svg?branch=master)](https://requires.io/github/jlaska/pytest-ansible/requirements/?branch=master)
+[![Build Status](https://img.shields.io/travis/com/ansible/pytest-ansible.svg)](https://travis-ci.com/ansible/pytest-ansible)
+[![Coverage Status](https://coveralls.io/repos/github/ansible/pytest-ansible/badge.svg?branch=master)](https://coveralls.io/github/ansible/pytest-ansible?branch=master)
+[![Requirements Status](https://requires.io/github/ansible/pytest-ansible/requirements.svg?branch=master)](https://requires.io/github/ansible/pytest-ansible/requirements/?branch=master)
 [![Version](https://img.shields.io/pypi/v/pytest-ansible.svg)](https://pypi.python.org/pypi/pytest-ansible/)
-[![Downloads](https://img.shields.io/pypi/dm/pytest-ansible.svg)](https://pypi.python.org/pypi/pytest-ansible/)
 [![License](https://img.shields.io/pypi/l/pytest-ansible.svg)](https://pypi.python.org/pypi/pytest-ansible/)
 [![Supported Python Versions](https://img.shields.io/pypi/pyversions/pytest-ansible.svg)](https://pypi.python.org/pypi/pytest-ansible/)
 
@@ -126,7 +125,7 @@ def test_host_manager(ansible_adhoc):
     hosts.localhost.ping()
 
     # Supports [ansible host patterns](http://docs.ansible.com/ansible/latest/intro_patterns.html)
-    hosts['webservers:!phoenix').ping()  # all webservers that are not in phoenix
+    hosts['webservers:!phoenix'].ping()  # all webservers that are not in phoenix
     hosts[0].ping()
     hosts[0:2].ping()
 

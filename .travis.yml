@@ -1,11 +1,14 @@
-sudo: false
 language: python
 sudo: required # needed for test_become
+dist: xenial
+python:
+    - "2.7"
+    - "3.6"
 env:
-    - TOXENV=py27-ansible_v19
-    - TOXENV=py27-ansible_v22
-    - TOXENV=py27-ansible_v23
-    - TOXENV=py27-ansible_devel
+    - TOXENV=ansible_v25
+    - TOXENV=ansible_v26
+    - TOXENV=ansible_v27
+    - TOXENV=ansible_devel
 install:
     - pip install -r test-requirements.txt
 script:
