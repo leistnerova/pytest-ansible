@@ -146,7 +146,11 @@ class ModuleDispatcherV24(ModuleDispatcherV2):
         # Raise exception if host(s) unreachable
         # FIXME - if multiple hosts were involved, should an exception be raised?
         if cb.unreachable:
-            raise AnsibleConnectionFailure("Host unreachable", dark=cb.unreachable, contacted=cb.contacted)
+            raise AnsibleConnectionFailure(
+                self.get_unreachable_msg(cb.unreachable),
+                dark=cb.unreachable,
+                contacted=cb.contacted
+            )
 
         # Success!
         return AdHocResult(contacted=cb.contacted)

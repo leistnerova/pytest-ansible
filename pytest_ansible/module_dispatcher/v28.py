@@ -79,7 +79,7 @@ class ModuleDispatcherV28(ModuleDispatcherV2):
 
         # Pass along cli options
         args = ['pytest-ansible', '-vvvvv', self.options['host_pattern']]
-        for argument in ('connection', 'user', 'become', 'become_method', 'become_user', 'module_path'):
+        for argument in ('connection', 'user', 'become', 'become_method', 'become_user', 'module_path', 'ssh_extra_args'):
             arg_value = self.options.get(argument)
             argument = argument.replace('_', '-')
 
@@ -142,7 +142,11 @@ class ModuleDispatcherV28(ModuleDispatcherV2):
         # Raise exception if host(s) unreachable
         # FIXME - if multiple hosts were involved, should an exception be raised?
         if cb.unreachable:
-            raise AnsibleConnectionFailure("Host unreachable", dark=cb.unreachable, contacted=cb.contacted)
+            raise AnsibleConnectionFailure(
+                self.get_unreachable_msg(cb.unreachable),
+                dark=cb.unreachable,
+                contacted=cb.contacted
+            )
 
         # Success!
         return AdHocResult(contacted=cb.contacted)

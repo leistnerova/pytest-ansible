@@ -55,6 +55,20 @@ class ModuleDispatcherV2(BaseModuleDispatcher):
         return ansible.plugins.module_loader.has_plugin(name)
         # return module_loader.has_plugin(name)
 
+    def get_unreachable_msg(self, unreachable):
+        message = []
+        for host in unreachable:
+            message.append(
+                "Host {} unreachable:\n{}".format(
+                    host,
+                    filter(
+                        re.compile('^(?!debug)').search,
+                        unreachable[host]['msg'].split('\n')
+                    )
+                )
+            )
+        return '\n'.join(message)
+
     def _run(self, *module_args, **complex_args):
         """Execute an ansible adhoc command returning the result in a AdhocResult object."""
         # Assemble module argument string
@@ -144,19 +158,8 @@ class ModuleDispatcherV2(BaseModuleDispatcher):
         # Raise exception if host(s) unreachable
         # FIXME - if multiple hosts were involved, should an exception be raised?
         if cb.unreachable:
-            message = []
-            for host in cb.unreachable:
-                message.append(
-                    "Host {} unreachable:\n{}".format(
-                        host,
-                        filter(
-                            re.compile('^(?!debug)').search,
-                            cb.unreachable[host]['msg'].split('\n')
-                        )
-                    )
-                )
             raise AnsibleConnectionFailure(
-                '\n'.join(message),
+                self.get_unreachable_msg(cb.unreachable),
                 dark=cb.unreachable,
                 contacted=cb.contacted
             )
